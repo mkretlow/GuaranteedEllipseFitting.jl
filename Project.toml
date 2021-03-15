@@ -1,0 +1,13 @@
+name = "GuaranteedEllipseFitting"
+uuid = "a69d7efa-13d4-41d9-822c-c0e22bcccb6a"
+authors = ["Dr. Zygmunt L. Szpak <zygmunt.szpak@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
