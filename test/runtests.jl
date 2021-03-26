@@ -1,6 +1,9 @@
 using GuaranteedEllipseFitting
-using Test
+using Test, StaticArrays
 
 @testset "GuaranteedEllipseFitting.jl" begin
-    # Write your tests here.
+    include("data_points.jl")
+    include("test_observations.jl")
+    #include("test_normalize_data_context.jl")
+    include("test_direct_ellipse_fit.jl")
 end
