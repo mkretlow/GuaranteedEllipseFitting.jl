@@ -119,15 +119,55 @@ function transform_data!(ℳ::AbstractVector)
      ℳ, 𝐓
 end
 
+function transform_covariance(Λ::AbstractVector, 𝐓::AbstractMatrix, ndim::Val{2})
+    Λ₂ = map(Λ) do 𝚲
+       # Lift the covariance matrix so that it correspond to homeogenous coordinates.
+       # This way the requisite transformation can be computed by multiply with a matrix 𝐓.
+       𝚲₀ =  hcat(𝚲, SVector(0.0, 0.0))
+       𝚲₁ = vcat(𝚲₀, transpose(SVector(0.0, 0.0, 0.0)))
+       𝚲₂ =  (𝐓 * 𝚲₁ * 𝐓')
+       𝚲′ = SMatrix{2,2,Float64,4}(𝚲₂[1], 𝚲₂[2], 𝚲₂[4], 𝚲₂[5])
+    end
+end
 
-function (coordinate_transformation::NormalizeDataContext)(direction::FromNormalizedSpace, 𝛉::AbstractVector)
+function (coordinate_transformation::NormalizeDataContext)(direction::FromNormalizedSpace, 𝛉′::AbstractVector)
     𝒯 = matrices(coordinate_transformation)
     𝐓 = 𝒯[1]
+    𝐄 = Diagonal(SVector(1, 2^-1, 1, 2^-1, 2^-1, 1))
+    # Permutation matrix for interchanging the 3rd and 4th entries of a length-6 vector. 
+    𝐏₃₄ = Diagonal(SVector(0,1,0)) ⊗ SMatrix{2,2,Float64}(0,1,1,0) + Diagonal(SVector(1,0,1)) ⊗ SMatrix{2,2,Float64}(1,0,0,1)
+    # 9 x 6 duplication matrix
+    𝐃₃ = [1 0 0 0 0 0; 
+          0 1 0 0 0 0;
+          0 0 1 0 0 0;
+          0 1 0 0 0 0;
+          0 0 0 1 0 0;
+          0 0 0 0 1 0;
+          0 0 1 0 0 0;
+          0 0 0 0 1 0;
+          0 0 0 0 0 1]    
+    𝛉 = 𝐄 \ 𝐏₃₄ * pinv(𝐃₃) * kron(𝐓, 𝐓)' * 𝐃₃ * 𝐏₃₄ * 𝐄 * 𝛉′
+    𝛉 = 𝛉 / norm(𝛉)
+    return 𝛉   
+end
 
-    # TODO replace this with a more elegant (direct) formula.
-    a, b, c, d, e, f = 𝛉
-    𝐂 =[a b/2 d/2;  b/2 c e/2 ; d/2 e/2 f]
-    𝐂′ = 𝐓' * 𝐂 * 𝐓
-    𝛉′ = SVector(𝐂′[1,1], 𝐂′[1,2]*2, 𝐂′[2,2], 𝐂′[1,3]*2, 𝐂′[2,3]*2, 𝐂′[3,3])
-    return 𝛉′ / norm(𝛉′)   
+function (coordinate_transformation::NormalizeDataContext)(direction::ToNormalizedSpace, 𝛉::AbstractVector)
+    𝒯 = matrices(coordinate_transformation)
+    𝐓 = 𝒯[1]
+    𝐄 = Diagonal(SVector(1, 2^-1, 1, 2^-1, 2^-1, 1))
+    # Permutation matrix for interchanging the 3rd and 4th entries of a length-6 vector. 
+    𝐏₃₄ = Diagonal(SVector(0,1,0)) ⊗ SMatrix{2,2,Float64}(0,1,1,0) + Diagonal(SVector(1,0,1)) ⊗ SMatrix{2,2,Float64}(1,0,0,1)
+    # 9 x 6 duplication matrix
+    𝐃₃ = [1 0 0 0 0 0; 
+          0 1 0 0 0 0;
+          0 0 1 0 0 0;
+          0 1 0 0 0 0;
+          0 0 0 1 0 0;
+          0 0 0 0 1 0;
+          0 0 1 0 0 0;
+          0 0 0 0 1 0;
+          0 0 0 0 0 1]    
+    𝛉′ = 𝐄 \ 𝐏₃₄ * pinv(𝐃₃) * inv(kron(𝐓, 𝐓))' * 𝐃₃ * 𝐏₃₄ * 𝐄 * 𝛉
+    𝛉′ = 𝛉′ / norm(𝛉′)
+    return 𝛉′   
 end
