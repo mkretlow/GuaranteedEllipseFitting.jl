@@ -1,6 +1,6 @@
 name = "GuaranteedEllipseFitting"
 uuid = "a69d7efa-13d4-41d9-822c-c0e22bcccb6a"
-authors = ["Dr. Zygmunt L. Szpak <zygmunt.szpak@gmail.com> and contributors"]
+authors = ["Dr. Zygmunt L. Szpak <zygmunt.szpak@gmail.com>"]
 version = "0.1.0"
 
 [deps]
@@ -12,6 +12,9 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
 julia = "1"
+Parameters = "0.12"
+StaticArrays = "1.0, 1.1"
+Setfield = "0.7"
 
 [extras]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
