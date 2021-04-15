@@ -40,6 +40,11 @@ struct DirectEllipseFit <: AbstractFittingMethod end
     seed::T = ManualEstimation()
 end
 
+"""
+```
+    GuaranteedEllipseFit(; parametrisation = SecondLatentEllipseParametrisation(), optimisation_scheme = LevenbergMarquardt())
+```
+"""
 @with_kw struct GuaranteedEllipseFit <: AbstractFittingMethod 
     parametrisation::AbstractLatentEllipseParametrisation = SecondLatentEllipseParametrisation()
     optimisation_scheme::LevenbergMarquardt = LevenbergMarquardt()

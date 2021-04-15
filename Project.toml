@@ -13,7 +13,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 julia = "1"
 Parameters = "0.12"
-StaticArrays = "1.0, 1.1"
+StaticArrays = "0.12.5, 1.0, 1.1"
 Setfield = "0.7"
 
 [extras]

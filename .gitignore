@@ -1,1 +1,7 @@
 /Manifest.toml
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
+docs/build/
+/.benchmarkci
+/benchmark/*.json

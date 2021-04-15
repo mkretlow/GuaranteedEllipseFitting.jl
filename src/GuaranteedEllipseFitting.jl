@@ -18,13 +18,15 @@ include("fit_ellipse.jl")
 include("covariance.jl")
 
 export Observations,
+       UncertainObservations,
        NormalizeDataContext,
        ToNormalizedSpace,
        FromNormalizedSpace,
        DirectEllipseFit,
        GuaranteedEllipseFit,
        AlgebraicToGeometric,
-       GeometricToAlgebraic,    
+       GeometricToAlgebraic,
+       LevenbergMarquardt,    
        sample_points_on_ellipse,   
        fit_ellipse,
        determine_algebraic_covariance,
