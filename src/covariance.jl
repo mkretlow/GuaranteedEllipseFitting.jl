@@ -25,15 +25,20 @@ function determine_algebraic_covariance(observations::Observations, 𝛉₀::Abs
     σ² = estimate_noise_level(observations, 𝛉₀)
     Λ = [SA_F64[σ² 0.0; 0.0 σ²] for n = 1:N]
     uncertain_observations = UncertainObservations(data, tuple(Λ))
-    # Convert observations and covariance matrices to a data-driven normalised coordinate system.
-    normalize = NormalizeDataContext(uncertain_observations, IsotropicScalingTranslation())
+    return determine_algebraic_covariance(uncertain_observations, 𝛉₀, estimator)
+end
+
+function determine_algebraic_covariance(observations::UncertainObservations, 𝛉₀::AbstractVector, estimator::GuaranteedEllipseFit)
+     # Convert observations and covariance matrices to a data-driven normalised coordinate system.
+    normalize = NormalizeDataContext(observations, IsotropicScalingTranslation())
     𝒯 = matrices(normalize)
     𝐓 = 𝒯[1]
     𝛉₁ = normalize(ToNormalizedSpace(), 𝛉₀)
-    @unpack data, covariance_matrices = normalize(uncertain_observations)
+    @unpack data, covariance_matrices = normalize(observations)
     ℳ = data[1]
     Λ = first(covariance_matrices)
     𝐌 = zeros(6,6)
+    N = length(first(data))
     for n = 1:N
         𝐦 = ℳ[n]
         𝚲ₙ = Λ[n]
