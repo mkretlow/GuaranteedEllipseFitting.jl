@@ -6,7 +6,7 @@ using Test, StaticArrays, LinearAlgebra
     include("test_sampling.jl")
     include("test_observations.jl")
     include("test_conversion.jl")
-    include("test_normalize_data_context.jl")
+    include("test_normalise_data_context.jl")
     include("test_direct_ellipse_fit.jl")
     include("guaranteed_ellipse_fit.jl")
     include("test_covariance.jl")

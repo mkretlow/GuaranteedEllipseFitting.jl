@@ -19,8 +19,8 @@ end
 
 function determine_algebraic_covariance(observations::Observations, 𝛉₀::AbstractVector, estimator::GuaranteedEllipseFit)
     @unpack data = observations
-    # We derive the covariance matrix of the estimate under the unit-norm Gauge constraint. 
-    𝛉₀ = 𝛉₀ / norm(𝛉₀)    
+    # We derive the covariance matrix of the estimate under the unit-norm Gauge constraint.
+    𝛉₀ = 𝛉₀ / norm(𝛉₀)
     N = length(first(data))
     σ² = estimate_noise_level(observations, 𝛉₀)
     Λ = [SA_F64[σ² 0.0; 0.0 σ²] for n = 1:N]
@@ -30,11 +30,11 @@ end
 
 function determine_algebraic_covariance(observations::UncertainObservations, 𝛉₀::AbstractVector, estimator::GuaranteedEllipseFit)
      # Convert observations and covariance matrices to a data-driven normalised coordinate system.
-    normalize = NormalizeDataContext(observations, IsotropicScalingTranslation())
-    𝒯 = matrices(normalize)
+    normalise = NormaliseDataContext(observations, IsotropicScalingTranslation())
+    𝒯 = matrices(normalise)
     𝐓 = 𝒯[1]
-    𝛉₁ = normalize(ToNormalizedSpace(), 𝛉₀)
-    @unpack data, covariance_matrices = normalize(observations)
+    𝛉₁ = normalise(ToNormalisedSpace(), 𝛉₀)
+    @unpack data, covariance_matrices = normalise(observations)
     ℳ = data[1]
     Λ = first(covariance_matrices)
     𝐌 = zeros(6,6)
@@ -43,7 +43,7 @@ function determine_algebraic_covariance(observations::UncertainObservations, �
         𝐦 = ℳ[n]
         𝚲ₙ = Λ[n]
         𝐮ₙ = SA_F64[𝐦[1]^2, 𝐦[1]*𝐦[2], 𝐦[2]^2, 𝐦[1], 𝐦[2], 1]
-        ∂𝐮ₙ = SA_F64[2*𝐦[1]  𝐦[2]  0  1  0  0; 0 𝐦[1] 2*𝐦[2] 0 1 0]'        
+        ∂𝐮ₙ = SA_F64[2*𝐦[1]  𝐦[2]  0  1  0  0; 0 𝐦[1] 2*𝐦[2] 0 1 0]'
         𝐀ₙ = 𝐮ₙ * 𝐮ₙ'
         𝐁ₙ = ∂𝐮ₙ * 𝚲ₙ * ∂𝐮ₙ'
         𝐌 = 𝐌 + 𝐀ₙ / (𝛉₁' * 𝐁ₙ * 𝛉₁)
@@ -51,16 +51,16 @@ function determine_algebraic_covariance(observations::UncertainObservations, �
     𝐏ₜ = UniformScaling(1) - (𝛉₁*𝛉₁') / norm(𝛉₁)^2
     # Compute rank-5 constrained pseudo-inverse of 𝐌.
     F = svd(𝐌)
-    𝐒 = vcat(SVector([1 / F.S[i] for i = 1:5]...), 0) 
+    𝐒 = vcat(SVector([1 / F.S[i] for i = 1:5]...), 0)
     𝐌⁻¹ = F.U * Diagonal(𝐒) * F.V'
     𝚺₁ = 𝐏ₜ * 𝐌⁻¹ * 𝐏ₜ
 
-    # Matrices used to transform from normalised to unnormalised (original) coordinate system. 
+    # Matrices used to transform from normalised to unnormalised (original) coordinate system.
     𝐄 = Diagonal(SVector(1, 2^-1, 1, 2^-1, 2^-1, 1))
-    # Permutation matrix for interchanging the 3rd and 4th entries of a length-6 vector. 
+    # Permutation matrix for interchanging the 3rd and 4th entries of a length-6 vector.
     𝐏₃₄ = Diagonal(SVector(0,1,0)) ⊗ SMatrix{2,2,Float64}(0,1,1,0) + Diagonal(SVector(1,0,1)) ⊗ SMatrix{2,2,Float64}(1,0,0,1)
     # 9 x 6 duplication matrix
-    𝐃₃ = [1 0 0 0 0 0; 
+    𝐃₃ = [1 0 0 0 0 0;
           0 1 0 0 0 0;
           0 0 1 0 0 0;
           0 1 0 0 0 0;
@@ -95,7 +95,7 @@ function determine_geometric_covariance(observations::Observations, 𝛏::Abstra
     B = min(V₊, V₋)
 
     ∂A = A == V₊ ? ∂V₊(𝛉, ψ, λ₊, Δ) : ∂V₋(𝛉, ψ, λ₋, Δ)
-    ∂B = A == V₊ ? ∂V₋(𝛉, ψ, λ₋, Δ) : ∂V₊(𝛉, ψ, λ₊, Δ) 
+    ∂B = A == V₊ ? ∂V₋(𝛉, ψ, λ₋, Δ) : ∂V₊(𝛉, ψ, λ₊, Δ)
 
     ∂𝛏 = vcat(∂A', ∂B', ∂H(𝛉, Δ)', ∂K(𝛉, Δ)',  ∂τ(𝛉)')
 
@@ -138,7 +138,7 @@ end
 
 function ∂V₊(𝛉::AbstractVector, ψ::Number, λ₊::Number, Δ::Number)
     a, b, c, d, e, f = 𝛉
-    return SVector(∂V₊_a(𝛉, ψ, λ₊, Δ), 
+    return SVector(∂V₊_a(𝛉, ψ, λ₊, Δ),
                    ∂V₊_b(𝛉, ψ, λ₊, Δ),
                    ∂V₊_c(𝛉, ψ, λ₊, Δ),
                    ∂V₊_d(𝛉, ψ, λ₊, Δ),
@@ -177,7 +177,7 @@ function ∂V₊_d(𝛉::AbstractVector, ψ::Number, λ₊::Number, Δ::Number)
     a, b, c, d, e, f = 𝛉
     part1 = (ψ/(λ₊*Δ))^(0.5)
     part2 = (b*e - 2*c*d)/(2*ψ)
-    return part1*part2;  
+    return part1*part2;
 end
 
 function ∂V₊_e(𝛉::AbstractVector, ψ::Number, λ₊::Number, Δ::Number)
@@ -196,7 +196,7 @@ end
 
 function ∂V₋(𝛉::AbstractVector, ψ::Number, λ₋::Number, Δ::Number)
     a, b, c, d, e, f = 𝛉
-    return SVector(∂V₋_a(𝛉, ψ, λ₋, Δ), 
+    return SVector(∂V₋_a(𝛉, ψ, λ₋, Δ),
                    ∂V₋_b(𝛉, ψ, λ₋, Δ),
                    ∂V₋_c(𝛉, ψ, λ₋, Δ),
                    ∂V₋_d(𝛉, ψ, λ₋, Δ),

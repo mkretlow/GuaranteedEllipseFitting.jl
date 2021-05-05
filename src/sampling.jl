@@ -1,3 +1,11 @@
+"""
+```
+    sample_points_on_ellipse(A::Real, B::Real, H::Real, K::Real, τ::Real, N::Integer, α₁::Real, α₂::Real)
+```
+    Samples N data points in the angle range [α₁, α₂] for an ellipse specified by  semi-major (A) semi-minor (B) axes,
+    centroid (H,K) and orientation (τ). All angles are assumed to be specified in radians. The results are returned
+    as `[Observations](@ref)`. 
+"""
 function sample_points_on_ellipse(A::Real, B::Real, H::Real, K::Real, τ::Real, N::Integer, α₁::Real, α₂::Real)
     ℳ = [SVector(0.0,0.0) for n = 1:N]
     for (n,α) in enumerate(range(α₁, stop = α₂, length = N))

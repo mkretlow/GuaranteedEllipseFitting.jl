@@ -14,6 +14,7 @@ function hom(v::StaticVector)
     push(v,1)
 end
 
+# Used to convert a N x 2 matrix into a one-dimensional array of 2D points (each point is a row of the original matrix). 
 function svectors(x::AbstractArray{T}, ::Val{N}) where {T,N}
     size(x,1) == N || error("sizes mismatch")
     isbitstype(T) || error("use for bitstypes only")

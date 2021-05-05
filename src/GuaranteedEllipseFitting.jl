@@ -11,7 +11,7 @@ include("types.jl")
 include("observations.jl")
 include("conversion.jl")
 include("sampling.jl")
-include("normalize_data_context.jl")
+include("normalise_data_context.jl")
 include("direct_ellipse_fit.jl")
 include("guaranteed_ellipse_fit.jl")
 include("fit_ellipse.jl")
@@ -19,15 +19,15 @@ include("covariance.jl")
 
 export Observations,
        UncertainObservations,
-       NormalizeDataContext,
-       ToNormalizedSpace,
-       FromNormalizedSpace,
+       NormaliseDataContext,
+       ToNormalisedSpace,
+       FromNormalisedSpace,
        DirectEllipseFit,
        GuaranteedEllipseFit,
        AlgebraicToGeometric,
        GeometricToAlgebraic,
-       LevenbergMarquardt,    
-       sample_points_on_ellipse,   
+       LevenbergMarquardt,
+       sample_points_on_ellipse,
        fit_ellipse,
        determine_algebraic_covariance,
        determine_geometric_covariance

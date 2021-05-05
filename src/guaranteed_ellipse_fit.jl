@@ -7,9 +7,19 @@ function (method::GuaranteedEllipseFit)(observations::AbstractObservations)
     optimisation_scheme = @set optimisation_scheme.seed = ManualEstimation(𝛈₀)
     N = length(observations.data[1])
     jacobian_matrix = JacobianMatrix(observations, zeros(N,5)) 
-    𝛈₁, cost = optimisation_scheme(observations, jacobian_matrix)    
-    # TODO Remove parametrisation option and just always use "SecondLatentEllipseParametrisation" 
-    # The lm method below assumes "SecondLatentEllipseParametrisation"
+
+    optimisation_result = optimisation_scheme(observations, jacobian_matrix)   
+    𝛈₁ = optimisation_result.minimiser
+
+    if (method.verbose)
+        cost = optimisation_result.minimum
+        info_str = optimisation_result.info_str
+        @info "AML Cost: $cost"
+        @info info_str
+    end
+
+    # TODO Remove parametrisation option and just always use "SecondLatentEllipseParametrisation". 
+    # The lm method below assumes "SecondLatentEllipseParametrisation".
     𝛉 = from_latent_parameters(parametrisation, 𝛈₁)   
     return 𝛉 / norm(𝛉)
 end
@@ -21,6 +31,7 @@ function (lm::LevenbergMarquardt)(observations::AbstractObservations, jacobian_m
     @unpack tol_𝛉, tol_cost, tol_Δ, tol_∇ = lm
     @unpack max_iter = lm
     @unpack seed = lm
+    @unpack max_func_eval = lm
 
     # minimum allowable magnitude of conic determinant to prevent ellipse from
     # convering on a degenarate parabola (e.g. two parallel lines).
@@ -30,9 +41,9 @@ function (lm::LevenbergMarquardt)(observations::AbstractObservations, jacobian_m
 
     𝛈ₖ = seed.𝛉
 
+    info_str = ""
     keep_going = true
     theta_updated = false
-    max_func_eval = 100 * length(𝛈ₖ)
     func_eval = 0
     k = 1
 
@@ -117,22 +128,22 @@ function (lm::LevenbergMarquardt)(observations::AbstractObservations, jacobian_m
         # Since 𝛈 is a projective entity this converge criterion will have
         # to change to take into account the scale/sign ambiguity.
         if min(norm(𝛈ₖ₊₁ - 𝛈ₖ), norm(𝛈ₖ₊₁ + 𝛈ₖ)) < tol_𝛉 && was_updated
-            @info "Breaking because of tolerance."
+            info_str = "Breaking because of tolerance."
             keep_going = false
         elseif abs(costₖ₊₁ - costₖ) < tol_cost && was_updated
-            @info "Breaking because of cost."
+            info_str = "Breaking because of cost."
             keep_going = false
         elseif norm(Δₖ₊₁) < tol_Δ
-            @info "Breaking because of update norm."
+            info_str = "Breaking because of update norm."
             keep_going = false
         elseif  norm(𝐉'*𝐫, Inf) < tol_∇
-            @info "Breaking because of gradient norm."
+            info_str = "Breaking because of gradient norm."
             keep_going = false
         elseif func_eval > max_func_eval
-            @info "Breaking because maximum func evaluations reached."
+            info_str = "Breaking because maximum func evaluations reached."
             keep_going = false
         elseif log(barrier) > tol_barrier || abs(detD) < tol_detD
-            @info "Breaking because approaching degenerate ellipse."
+            info_str = "Breaking because approaching degenerate ellipse."
             keep_going = false
         end
 
@@ -141,8 +152,8 @@ function (lm::LevenbergMarquardt)(observations::AbstractObservations, jacobian_m
         costₖ = costₖ₊₁
         k = was_updated ? k + 1 : k
     end
-    # TODO create optimisation output struct and return that instead
-    return 𝛈ₖ, costₖ #, Δₖ, k, func_eval
+
+    return OptimisationResult(𝛈ₖ, costₖ, info_str)
 end
 
 
@@ -225,7 +236,7 @@ function (jacobian_matrix::JacobianMatrix)(𝛈::AbstractVector)
    
     𝐏ₜ = UniformScaling(1) - (𝛉*𝛉')/norm(𝛉)^2
     ∂π = norm(𝛉)^-1 * 𝐏ₜ *  ∂𝛋(𝛈)
-    # TODO overwrite the pre-allocated array instead
+    # TODO overwrite the pre-allocated array instead (for performance).
     ∂𝐫′ = zeros(N, 5)
     for n = 1:N
         𝐦 = ℳ[n]
