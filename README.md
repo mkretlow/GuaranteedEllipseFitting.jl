@@ -120,3 +120,23 @@ end
 To run the above code, copy and pase it into a Julia REPL or write a script in VSCode. Note that you will first need to install all the "used" packages. 
 For working with unicode, checkout https://juliamono.netlify.app/. 
 
+To generate and save the figure, use
+```julia
+fig = homogeneous_noise_example()
+save("ellipse_fitting_example.pdf", fig)
+```
+
+As explained on the [Makie](https://makie.juliaplots.org/stable/basic-tutorial.html) plotting package: 
+
+> To see the output of plotting commands when using CairoMakie, we recommend you either use an IDE which supports png or svg output, such as VSCode, Atom/Juno, Jupyter, Pluto, etc., or try using a viewer package such as ElectronDisplay.jl, or alternatively save your plots to files directly. The Julia REPL by itself does not have the ability to show plots.
+
+## Loading your own data
+
+The `fit_ellipse(observations::AbstractObservations, method::AbstractFittingMethod)` expects the data to be wrapped as `Observations` or `UncertainObservations`. The difference between the two options is that `UncertainObservations` wraps not only the 2D points, but also a covariance matrix for each point, i.e., there is information about the measurement uncertainty for each point. 
+
+The 2D points need to be stored as a one-dimensional array of length-2 vectors and wrapped in a tuple. For example, 
+```julia
+# For simplicity, pts don't lie on an actual ellipse here (you wouldn't try to fit to this). 
+pts = [SVector(i,i) for i = 1:N]
+observations = Observations(tuple(pts))
+```
