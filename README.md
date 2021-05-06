@@ -134,9 +134,16 @@ As explained on the [Makie](https://makie.juliaplots.org/stable/basic-tutorial.h
 
 The `fit_ellipse(observations::AbstractObservations, method::AbstractFittingMethod)` expects the data to be wrapped as `Observations` or `UncertainObservations`. The difference between the two options is that `UncertainObservations` wraps not only the 2D points, but also a covariance matrix for each point, i.e., there is information about the measurement uncertainty for each point. 
 
-The 2D points need to be stored as a one-dimensional array of length-2 vectors and wrapped in a tuple. For example, 
+The 2D points need to be stored as a one-dimensional array of length-2 vectors and wrapped in a tuple.  
 ```julia
 # For simplicity, pts don't lie on an actual ellipse here (you wouldn't try to fit to this). 
-pts = [SVector(i,i) for i = 1:N]
+pts = [SVector{2, Float64}(rand(2)...) for i = 1:N]
 observations = Observations(tuple(pts))
+```
+However, when importing data, the 2D points are frequently represented as a N x 2 matrix. You can construct Observations directly from such a representation
+by passing the matrix to the constructor.
+```julia
+# For simplicity, pts don't lie on an actual ellipse here (you wouldn't try to fit to this). 
+pts = rand(N,2)
+observations = Observations(pts)
 ```
