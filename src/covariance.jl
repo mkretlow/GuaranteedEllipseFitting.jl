@@ -77,7 +77,7 @@ function determine_algebraic_covariance(observations::UncertainObservations, �
     return 𝚺₀
 end
 
-function determine_geometric_covariance(observations::Observations, 𝛏::AbstractVector, estimator::GuaranteedEllipseFit)
+function determine_geometric_covariance(observations::Union{Observations,UncertainObservations}, 𝛏::AbstractVector, estimator::GuaranteedEllipseFit)
     geo_to_alg = GeometricToAlgebraic()
     𝛉 =  geo_to_alg(𝛏)
     𝛉 = 𝛉 / norm(𝛉)
